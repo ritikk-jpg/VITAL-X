@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self' data: blob:; worker-src 'self' blob:; media-src 'self' blob: mediastream:; connect-src 'self'; font-src 'self' data:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="theme-color" content="#09090B">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VITAL-X">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2309090B'/%3E%3Crect x='4' y='4' width='56' height='56' fill='none' stroke='%23FACC15' stroke-width='4'/%3E%3Cpath d='M16 18 L32 48 L48 18' fill='none' stroke='%23F4F4F5' stroke-width='6' stroke-linecap='square' stroke-linejoin='miter'/%3E%3Ccircle cx='32' cy='14' r='3.5' fill='%23DC2626'/%3E%3C/svg%3E">
+  <title>VITAL-X | Tactical Edge Node</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<noscript><div style="padding:20px;font-weight:900">[!] VITAL-X REQUIRES JAVASCRIPT.</div></noscript>
+
+<div id="app" role="application" aria-label="VITAL-X Tactical Edge Node">
+  <!-- ================= AIR-GAP / OFFLINE TELEMETRY STATUS BAR ================= -->
+  <div class="airgap-status-bar" role="status" aria-live="polite">
+    <span class="net-status-pill" id="net-status-pill">● VITAL-X [AIR-GAP SECURE]</span>
+    <span class="sw-status-tag" id="sw-status-tag">SW: vital-x-v1</span>
+  </div>
+
+  <!-- ================= TOP SYSTEM HEADER (PERSISTENT) ================= -->
+  <header class="top-header">
+    <button class="hdr-btn beacon" id="btn-beacon" aria-label="Open Optical Comms Transceiver">
+      <span class="lbl-main"><i class="pulse-dot"></i>BEACON</span>
+      <span class="lbl-sub">AIR-LINK // QR TRANSCEIVER</span>
+    </button>
+    <button class="hdr-btn destruct" id="btn-destruct" aria-label="Hold 2.5 seconds to Zeroize">
+      <div class="destruct-fill" id="destruct-fill"></div>
+      <span class="lbl-main" id="destruct-main">DESTRUCT</span>
+      <span class="lbl-sub" id="destruct-sub">HOLD 2.5S // ZEROIZE DB</span>
+    </button>
+  </header>
+
+  <!-- ================= STAGE (3 OPERATIONAL SCREENS) ================= -->
+  <main id="stage">
+
+    <!-- SCREEN 1: MAPS (Tactical Situational Awareness & Offline Vector Canvas) -->
+    <section class="screen active" id="screen-maps" aria-label="Tactical Map HUD">
+      <div class="map-viewport">
+        <div id="gmap"></div>
+        <canvas id="map-canvas" title="Tap canvas to drop tactical waypoint pin"></canvas>
+        <div class="map-hud-top">
+          <button class="hud-pill cyan" id="hud-engine" title="Offline Vector Grid + IndexedDB Engine">VECTOR GRID: TACTICAL EDGE v1</button>
+          <div class="hud-pill" id="hud-gps">GNSS: 28.6139N 77.2090E (±4M)</div>
+        </div>
+        <div class="map-hud-bot">
+          <div class="hud-pill amber" id="hud-dist">SHELTER: 242M // AZ 042°</div>
+          <button class="hud-pill red" id="hud-clear-haz" hidden>[ CLEAR NO-GO ]</button>
+        </div>
+      </div>
+
+      <div class="map-status-strip" id="map-status-strip">
+        <span id="route-banner-txt">CORRIDOR ALPHA: VERIFIED CLEAR</span>
+        <span id="hazard-count-txt">0 HAZARDS · 1 WP</span>
+      </div>
+
+      <!-- 4-BUTTON ACTION PAD (2x2 GRID) -->
+      <div class="action-pad-2x2">
+        <button class="tac-btn sos" id="btn-sos">
+          <span class="b-main">SOS</span>
+          <span class="b-sub" id="sos-sub">PRIORITY ESCALATE</span>
+        </button>
+        <button class="tac-btn amber-on" id="btn-comms">
+          <span class="b-main">COMMS</span>
+          <span class="b-sub" id="comms-sub">OPTICAL QR SHEET</span>
+        </button>
+        <button class="tac-btn" id="btn-nogo">
+          <span class="b-main">NO-GO</span>
+          <span class="b-sub" id="nogo-sub">100M HAZARD RING</span>
+        </button>
+        <button class="tac-btn green-on" id="btn-sync">
+          <span class="b-main">SYNC</span>
+          <span class="b-sub" id="sync-sub">OFFLINE - GPS LOCKED</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: TRIAGE (Squad Biometrics & Casualty Care) -->
+    <section class="screen" id="screen-triage" aria-label="Squad Biometrics and Triage">
+      <!-- TOP VITALS MONITOR -->
+      <div class="vitals-monitor">
+        <div class="vm-header">
+          <div class="vm-op-info">
+            <span class="triage-badge RED" id="vm-badge">RED</span>
+            <span class="vm-callsign" id="vm-callsign">ALPHA-01 // SGT MALIK</span>
+          </div>
+          <div class="vm-actions">
+            <button class="vm-mini-btn" id="btn-cycle-priority" title="Cycle TCCC Triage Level in IndexedDB">[ TAG ]</button>
+            <button class="vm-mini-btn warn" id="btn-sim-drop" title="Simulate IMU Gear Drop">[ GEAR DROP ]</button>
+          </div>
+        </div>
+
+        <div class="vitals-readout-row">
+          <div class="vbox" id="vbox-hr">
+            <div class="vnum" id="v-bpm">134</div>
+            <div class="vunit"><span class="pulse-heart">♥</span><span>BPM</span></div>
+          </div>
+          <div class="vbox" id="vbox-spo2">
+            <div class="vnum" id="v-spo2">86</div>
+            <div class="vunit"><span>O2 SAT</span><span>% SPO2</span></div>
+          </div>
+        </div>
+
+        <div class="ecg-wrap">
+          <canvas id="ecg-canvas"></canvas>
+          <span class="ecg-tag" id="ecg-lead-lbl">ECG // LEAD II — ALPHA-01</span>
+          <span class="ecg-status" id="ecg-status-lbl">LIVE TELEMETRY</span>
+        </div>
+
+        <!-- SMART-DROP ANTI-FRATRICIDE OVERLAY -->
+        <div class="drop-overlay" id="drop-card" hidden>
+          <div class="dc-title" id="dc-title">[!] GEAR DROPPED IN DIRT // SOLDIER STILL ALIVE</div>
+          <div class="dc-sub" id="dc-sub">IMU IMPACT 28.0 M/S² // BLACK-TAG SUPPRESSED</div>
+          <div class="dc-row">
+            <div class="dc-bar"><i id="dc-fill"></i></div>
+            <span class="dc-count" id="dc-count">15S</span>
+          </div>
+          <button class="btn on" id="cancel-drop-btn" style="min-height:42px">[ CANCEL ALARM // RESTORE VITALS ]</button>
+        </div>
+      </div>
+
+      <!-- BOTTOM SQUAD GRID (2x4 GRID OF 8 OPERATOR CARDS) -->
+      <div class="squad-roster-label">
+        <span>SQUAD ROSTER (INDEXEDDB SYNCED)</span>
+        <span id="squad-summary-txt">2 RED · 2 YLW · 3 GRN · 1 BLK</span>
+      </div>
+      <div class="squad-grid" id="squad-grid"></div>
+    </section>
+
+    <!-- SCREEN 3: FLIR (Thermal & Optical Sensor Feed) -->
+    <section class="screen" id="screen-flir" aria-label="Thermal and Optical Sensor Feed">
+      <div class="flir-viewport">
+        <video id="flir-video" playsinline muted autoplay></video>
+        <canvas id="flir-canvas"></canvas>
+        <div class="flir-hud-overlay">
+          <div class="hud-pill amber" id="flir-mode-pill">MODE: IRONBOW THERMAL</div>
+          <div class="hud-pill" id="flir-az-pill">AZ +000° // 16HZ</div>
+        </div>
+        <div class="flir-pan-controls">
+          <button class="pan-btn" id="scan-l">◀ PAN L</button>
+          <button class="pan-btn" id="btn-cam-toggle">OPTICAL CAM: SIM</button>
+          <button class="pan-btn" id="scan-r">PAN R ▶</button>
+        </div>
+      </div>
+
+      <div class="flir-status-strip detected" id="flir-status-strip">
+        <span id="flir-hud-txt">[+] 37.1°C // BIOLOGICAL HEAT SIGNATURE</span>
+        <span id="flir-lidar-txt">DEPTH: OFF</span>
+      </div>
+
+      <!-- 4-BUTTON SENSOR ACTION PAD (2x2 GRID) -->
+      <div class="action-pad-2x2">
+        <button class="tac-btn" id="btn-lidar">
+          <span class="b-main">LIDAR / ToF</span>
+          <span class="b-sub" id="lidar-sub">DEPTH IR MESH: OFF</span>
+        </button>
+        <button class="tac-btn amber-on" id="btn-thermal">
+          <span class="b-main">THERMAL SENSOR</span>
+          <span class="b-sub" id="thermal-sub">IRONBOW IR: ACTIVE</span>
+        </button>
+        <button class="tac-btn" id="btn-contact">
+          <span class="b-main">CONTACT / FOUND</span>
+          <span class="b-sub" id="contact-sub">STAMP THERMAL PIN</span>
+        </button>
+        <button class="tac-btn" id="btn-assist">
+          <span class="b-main">ASSIST / BACKUP</span>
+          <span class="b-sub" id="assist-sub">REINFORCE POS</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= BOTTOM PERSISTENT DOCK (3 VIEW TABS) ================= -->
+  <nav class="bottom-dock" role="tablist" aria-label="Primary View Navigation">
+    <button class="dock-tab active" data-tab="maps" role="tab" aria-selected="true">
+      <span class="t-main">MAPS</span>
+      <span class="t-sub">SITUATIONAL HUD</span>
+    </button>
+    <button class="dock-tab" data-tab="triage" role="tab" aria-selected="false">
+      <span class="t-main">TRIAGE</span>
+      <span class="t-sub">SQUAD VITALS (8)</span>
+    </button>
+    <button class="dock-tab" data-tab="flir" role="tab" aria-selected="false">
+      <span class="t-main">FLIR</span>
+      <span class="t-sub">THERMAL / LIDAR</span>
+    </button>
+  </nav>
+
+  <!-- ================= OPTICAL COMMS TRANSCEIVER MODAL / SHEET (BEACON & COMMS) ================= -->
+  <div class="modal" id="modal-optical" role="dialog" aria-label="Optical Comms Transceiver Sheet">
+    <div class="mhead">
+      <span>▦ OPTICAL COMMS TRANSCEIVER // BEACON</span>
+      <button class="mclose" data-close>[ CLOSE ]</button>
+    </div>
+    <div class="subtabs">
+      <button class="subtab active" id="tab-tx">[ 01: BROADCAST COMPOSER (TX) ]</button>
+      <button class="subtab" id="tab-rx">[ 02: OPTICAL SCANNER (RX) ]</button>
+    </div>
+
+    <!-- PANE 1: TX PAYLOAD COMPOSER, LIVE INSPECTOR & QR GENERATOR -->
+    <div class="optical-pane active scroll" id="pane-tx">
+      <div class="sec-title">
+        <span>1. QUICK-SELECT TACTICAL PRESET CHIPS</span>
+        <span id="active-cat-lbl">CAT: AMBUSH</span>
+      </div>
+      <div class="preset-chips-grid" id="preset-chips">
+        <button class="preset-chip red-chip" data-cat="AMBUSH" data-msg="AMBUSH / UNDER FIRE">
+          <span>🚨 AMBUSH / UNDER FIRE</span>
+        </button>
+        <button class="preset-chip red-chip active" data-cat="AMBUSH" data-msg="ROUTE BLOCKED / RETREAT">
+          <span>🛑 ROUTE BLOCKED / RETREAT</span>
+        </button>
+        <button class="preset-chip red-chip" data-cat="MEDICAL" data-msg="MEDEVAC URGENT (RED)">
+          <span>🩸 MEDEVAC URGENT (RED)</span>
+        </button>
+        <button class="preset-chip" data-cat="EXTRACTION" data-msg="EXTRACTION AT LZ">
+          <span>🚁 EXTRACTION AT LZ</span>
+        </button>
+        <button class="preset-chip" data-cat="THERMAL" data-msg="THERMAL CONTACT CONFIRMED">
+          <span>🔥 THERMAL CONTACT CONFIRMED</span>
+        </button>
+        <button class="preset-chip" data-cat="SECURE" data-msg="CHECKPOINT SECURE">
+          <span>✅ CHECKPOINT SECURE</span>
+        </button>
+      </div>
+
+      <div class="sec-title">
+        <span>2. CUSTOM FIELD NOTES &amp; PAYLOAD LIVE INSPECTOR</span>
+        <span id="char-count-lbl">23 CHARS</span>
+      </div>
+      <textarea
+        id="optical-custom-msg"
+        class="custom-msg-textarea"
+        rows="2"
+        placeholder="Type custom tactical field note or select a preset chip above..."
+        spellcheck="false"
+      >ROUTE BLOCKED / RETREAT</textarea>
+
+      <!-- 200B WARNING BANNER -->
+      <div class="payload-warning-banner" id="payload-size-warning" hidden>
+        PAYLOAD EXCEEDS 200B - REDUCE TEXT FOR FASTER CAMERA RECOGNITION
+      </div>
+
+      <!-- READ-ONLY TERMINAL / HUD LIVE PAYLOAD PREVIEW -->
+      <div class="inspector-box">
+        <div class="inspector-meta">
+          <div>BYTE LENGTH: <b id="meta-bytes" class="amber">136 B / 200 B</b></div>
+          <div>SEQUENCE ID: <b id="meta-seq" class="amber">SEQ #105</b></div>
+          <div>GPS FIX: <b id="meta-geo">[28.6139, 77.2090]</b></div>
+          <div>MED STATUS: <b id="meta-med">RED</b></div>
+        </div>
+        <pre class="inspector-pre" id="payload-preview-json"></pre>
+      </div>
+
+      <!-- 3. DYNAMIC QR CODE CANVAS (ECC LEVEL M, 4-MODULE QUIET ZONE) -->
+      <div class="sec-title">
+        <span>3. DYNAMIC OPTICAL QR MATRIX (ECC LEVEL M · 15%)</span>
+        <span id="qr-ver-lbl">VER 6-M // 4-MOD QUIET ZONE</span>
+      </div>
+      <div class="qr-stage-box">
+        <div class="qr-canvas-holder">
+          <canvas id="qr-canvas"></canvas>
+        </div>
+        <div class="qr-spec-caption" id="qr-tx-status">READY TO TRANSMIT // ZERO-RF OPTICAL LINK</div>
+        <button class="btn on" id="btn-transmit-frame" style="width:100%;min-height:54px;font-size:14px">
+          [ TRANSMIT / REFRESH FRAME (SEQ +1 &amp; SAVE DB) ]
+        </button>
+      </div>
+
+      <!-- RECENT INDEXEDDB MESSAGES -->
+      <div class="sec-title" style="margin-top:4px">
+        <span>RECENT TACTICAL MESSAGES (TacticalEdgeDB)</span>
+        <span id="db-msg-count">0 LOGGED</span>
+      </div>
+      <div class="db-msg-list" id="db-msg-list"></div>
+    </div>
+
+    <!-- PANE 2: RX CAMERA SCANNER -->
+    <div class="optical-pane scroll" id="pane-rx">
+      <div class="rx-wrap">
+        <div class="viewfinder" id="viewfinder">
+          <video id="rx-video" playsinline muted autoplay></video>
+          <canvas id="rx-canvas"></canvas>
+          <div class="reticle tl"></div>
+          <div class="reticle tr"></div>
+          <div class="reticle bl"></div>
+          <div class="reticle br"></div>
+          <div class="scanline"></div>
+          <div class="rx-status-tag" id="rx-status-tag">SCANNING OPTICAL AIR-GAP...</div>
+        </div>
+      </div>
+
+      <div class="rx-error-card" id="rx-error-card" hidden>
+        <div style="font-size:12px;font-weight:900;color:var(--amber)">[!] CAMERA PERMISSION OR SENSOR OFFLINE</div>
+        <div style="font-size:10px;color:var(--text-muted)">SIMULATE AN INCOMING OPTICAL JSON PACKET TO TEST DB PERSISTENCE</div>
+        <div class="mfoot g2" style="padding:0;border:0;background:none">
+          <button class="btn" id="rx-retry-btn">RETRY CAM</button>
+          <button class="btn on" id="rx-sim-btn">SIMULATE RX PACKET</button>
+        </div>
+      </div>
+
+      <div class="rx-result-card" id="rx-result-card" hidden>
+        <div style="font-size:12px;font-weight:900;color:var(--green-bright)">[+] OPTICAL JSON PACKET CAPTURED</div>
+        <pre class="inspector-pre" id="rx-res-payload" style="background:#050507;padding:6px;border:1px solid var(--border-stark)"></pre>
+        <div class="mfoot g2" style="padding:0;border:0;background:none">
+          <button class="btn on" id="rx-import-btn">SAVE TO DB &amp; APPLY</button>
+          <button class="btn" id="rx-again-btn">SCAN AGAIN</button>
+        </div>
+      </div>
+
+      <div class="mfoot">
+        <button class="btn" data-close>[ CLOSE OPTICAL SHEET ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: DESTRUCT / SLIDE TO ZEROIZE ================= -->
+  <div class="modal veil" id="modal-zero" role="alertdialog" aria-label="Emergency Zeroize Confirmation">
+    <div class="zcard">
+      <div class="ztitle">[!] EMERGENCY ZEROIZE PROTOCOL</div>
+      <div class="ztext">
+        CRITICAL SAFETY INTERLOCK: DELETES <strong>TacticalEdgeDB</strong> (IndexedDB), SQUAD TRIAGE, HAZARDS, OPTICAL PACKETS &amp; LOCAL STORAGE.
+        <br><br>
+        Hold the top <strong>DESTRUCT</strong> button for 2.5 seconds OR slide the confirm bar below to execute immediate cryptographic purge.
+      </div>
+      <div class="slide-wipe-wrap">
+        <div class="slide-wipe-lbl">&gt;&gt;&gt; SLIDE COMPLETELY RIGHT TO ZEROIZE &lt;&lt;&lt;</div>
+        <input type="range" id="zero-slider" min="0" max="100" value="0" aria-label="Slide to confirm zeroize">
+      </div>
+      <button class="btn" data-close>[ ABORT // RETURN TO MISSION ]</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- 100% Local Self-Hosted Vendor & Application Scripts (Zero External CDNs) -->
+<script src="./vendor/qrcode.min.js"></script>
+<script src="./vendor/jsQR.min.js"></script>
+<script src="./db.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
